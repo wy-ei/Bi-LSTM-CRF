@@ -46,7 +46,7 @@ A PyTorch implemention of Bi-LSTM-CRF model for Chinese Named Entity Recognition
 
 这里每个词的对应的向量作为 CRF 的输入，CRF 会最大化整个序列的概率，因此得到的结果会更优。
 
-![](https://wangyu-name.oss-cn-hangzhou.aliyuncs.com/superbed/2019/06/01/5cf26f8d451253d1785e5838.jpg)
+![image](https://user-images.githubusercontent.com/7794103/58749767-9f217980-84bc-11e9-806e-773b80ab46d3.png)
 
 图取自: _https://aclweb.org/anthology/N16-1030_
 
