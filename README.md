@@ -7,9 +7,9 @@ A PyTorch implemention of Bi-LSTM-CRF model for Chinese Named Entity Recognition
 
 ## 数据集
 
-数据集来自 [zh-NER-TF](https://github.com/Determined22/zh-NER-TF) 项目，感谢 [Determined22](https://github.com/Determined22) 幸苦处理数据。
+这里采用的数据集来自 [zh-NER-TF](https://github.com/Determined22/zh-NER-TF) 项目，感谢 [Determined22](https://github.com/Determined22) 幸苦处理数据。
 
-这个数据集共有三种实体： PERSON, LOCATION and ORGANIZATION，下面是统计信息：
+这个数据集共有三种实体： PERSON, LOCATION, ORGANIZATION，下面是统计信息：
 
 |  -  | sentence | PER | LOC | ORG |
 |:----|:---:|:---:|:---:|:---:|
@@ -17,12 +17,7 @@ A PyTorch implemention of Bi-LSTM-CRF model for Chinese Named Entity Recognition
 | test   | 4365  | 1973  | 2877  | 1331  |
 
 
-数据存放在 `datasets` 目录下，文件说明如下：
-
-- `datasets/train_data`: 训练数据
-- `datasets/test_data`: 测试数据
-
-其中文件的格式如下，句子与句子之间使用空行隔开。在 `data.py` 中有具体读取数据的代码。
+训练数据和测试数据存放在 `datasets` 目录下，其中文件的格式如下所示：
 
 ```
 中	B-ORG
@@ -43,6 +38,8 @@ A PyTorch implemention of Bi-LSTM-CRF model for Chinese Named Entity Recognition
 词	O
 ```
 
+其中句子与句子之间使用空行隔开，在 `data.py` 中有具体读取数据的代码。
+
 ## 模型
 
 模型的结构大致如下，这里 Bi-LSTM 层的输入为字向量。Bi-LSTM 对每个字进行编码，然后经过 softmax 后，每个词对应一个长度为 `len(tags)` 的向量，在不使用 CRF 的方法中，就取这个向量中最大的值的位置作为预测的 tag 了，但显然这不能达到最优。
@@ -53,14 +50,14 @@ A PyTorch implemention of Bi-LSTM-CRF model for Chinese Named Entity Recognition
 
 图取自: _https://aclweb.org/anthology/N16-1030_
 
-在 PyTorch 中没有 CRF 层，这里使用了 [AllenNLP](https://github.com/allenai/allennlp) 中的 CRF 实现，AllenNLP 中的 CRF 层实现了相当清晰高效。
+在 PyTorch 中没有 CRF 层，这里使用了 [AllenNLP](https://github.com/allenai/allennlp) 中的 CRF 实现，AllenNLP 中的 CRF 层实现了相当清晰高效，强烈建议使用。
 
 
 ## 配置模型参数
 
 下面是模型的默认参数，大部分都是不用解释的，除 `condtraints` 之外。
 
-在条件随机场中存在一个状态转移矩阵，在这里此状态转移矩阵就包含的是不同 tag 之间转移的概率。但并不是任何状态之间都能进行转移的，比如 `B-PER` 就不可能转移到 `I-LOC` 上。`condtraints` 就用来指明那些状态之间可以转移，这样将极大地减少可能性，在训练和解码过程中，能够大幅提升速度，请务必指定此参数。其创建方法见 `data.py`。
+在条件随机场中存在一个状态转移矩阵，在这里此状态转移矩阵就包含的是不同 tag 之间转移的概率。但并不是任何状态之间都能进行转移的，比如 `B-PER` 就不可能转移到 `I-LOC` 上。`condtraints` 就用来指明那些状态之间可以转移，这样将极大地减少可能性，在训练和解码过程中，能够大幅提升速度。请务必指定此参数，其创建方法见 `data.py`。
 
 `name` 参数只是在保存模型时用以区别，并未更多含义。
 
@@ -79,9 +76,9 @@ class Config:
 
 ## 运行代码
 
-如果要实际跑一跑代码，需要确保有 GPU 的支持，我的实验中使用全量数据在 Tasle V100 上需要跑 20 分钟左右。
+如果要实际跑一跑代码，需要确保有 GPU 的支持，我在实验中使用全量数据在 Tasle V100 上需要跑 20 分钟左右。
 
-详情请参见 `main.py` 中的代码，一切都注释的很清楚。
+详情请参见 `main.py` 中的代码，一切都注释的很清楚。下面是部分解释：
 
 **训练模型**
 
@@ -89,8 +86,6 @@ class Config:
 train(model, optimizer, train_dl, val_dl, 
       device=device, epochs=20, early_stop=True,save_every_n_epochs=3)
 ```
-
-训练过程：
 
 ```
 2019-06-01 20:25:27,658 - epoch 1 - loss: 6.30 acc: 0.72 - val_acc: 0.69
@@ -123,11 +118,11 @@ recall      0.86
 f1          0.83
 ```
 
-经过我多次测试，模型最好能在测试集上达到 80% 的最高准确度。关于准确度的计算请参见 `metric.py`。
+经过我多次测试，模型最好能在测试集上达到 80% 的准确度。关于准确度的计算请参见 `metric.py` 中相关代码。
 
 **加载已有模型**
 
-在创建了模型，之后，可以加载先前保存的模型参数，以恢复模型。
+在创建了模型后，可以加载先前保存的模型参数，以恢复模型。
 
 ```python
 from trainer import load_model
@@ -135,7 +130,7 @@ from trainer import load_model
 load_model(model, 'model_hidden_256_embed_150_epoch_8_acc_0.89.tar')
 ```
 
-**实际测试**
+**实际预测**
 
 ```python
 from predict import predict_sentence_tags, get_entity
